@@ -121,9 +121,23 @@ export class BotUpdate {
     await this.userService.selectedService(ctx);
   }
 
+  @Hears("🕜 Vaqt")
+  async masterTime(@Ctx() ctx: Context) {
+    await this.masterService.masterTime(ctx);
+  }
+  @Hears("✏️ Malumotlarni o'zgartirish")
+  async masterInfoupdate(@Ctx() ctx: Context) {
+    await this.masterService.masterInfoEdit(ctx);
+  }
+
   @Action(/^jobsession_\d+$/)
   async onClickJobSession(@Ctx() ctx: Context) {
     await this.userService.onClickJobSession(ctx);
+  }
+
+  @Action(/^edit_(\w+)$/)
+  async onEditMaster(@Ctx() ctx: Context) {
+    await this.masterService.onEditMaster(ctx);
   }
 
   @Action(/^ism_\d+$/)
@@ -163,6 +177,11 @@ export class BotUpdate {
   @Action(/^mark_\d+_\d+$/)
   async onClickMarked(@Ctx() ctx: Context) {
     await this.masterService.onClickMarked(ctx);
+  }
+
+  @Action(/^back_\d+$/)
+  async onClickBack(@Ctx() ctx: Context) {
+    await this.masterService.masterTime(ctx);
   }
 
   @Action(/^date_\d+_\d+\.\d+$/)

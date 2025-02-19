@@ -345,7 +345,7 @@ export class BotService {
                 parse_mode: "HTML",
                 ...Markup.keyboard([
                   [Markup.button.locationRequest("Joylashuvni yuborish")],
-                ]).resize(),
+                ]).resize().oneTime()
               });
             } else if (master.last_state == "average_service_time") {
               master.average_service_time = Number(ctx.message.text);
@@ -359,6 +359,35 @@ export class BotService {
                     ["✅ Tasdiqlash", "❌ Bekor qilish"],
                   ]).resize(),
                 }
+              );
+            }
+          } else if (master.edit_last_state !== null) {
+            if (master.edit_last_state === "edit_master_name") {
+              master.first_name = ctx.message.text;
+              master.edit_last_state = null;
+              await master.save();
+              await ctx.reply("Ismingiz o'zgartirildi.");
+            } else if (master.edit_last_state === "edit_workshop_name") {
+              master.workshop_name = ctx.message.text;
+              master.edit_last_state = null;
+              await master.save();
+              await ctx.reply("Ustaxona nomi o'zgartirildi.");
+            } else if (master.edit_last_state === "edit_address") {
+              master.address = ctx.message.text;
+              master.edit_last_state = null;
+              await master.save();
+              await ctx.reply("Manzil o'zgartirildi.");
+            } else if (master.edit_last_state === "edit_address_target") {
+              master.address_target = ctx.message.text;
+              master.edit_last_state = null;
+              await master.save();
+              await ctx.reply("Manzil mo'ljali o'zgartirildi.");
+            } else if (master.edit_last_state === "edit_average_service_time") {
+              master.average_service_time = Number(ctx.message.text);
+              master.edit_last_state = null;
+              await master.save();
+              await ctx.reply(
+                "Har bir mijoz uchun sarflanadigan vaqt o'zgartirildi."
               );
             }
           }

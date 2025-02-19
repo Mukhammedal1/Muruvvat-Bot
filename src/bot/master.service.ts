@@ -86,7 +86,7 @@ export class MasterService {
         if ((!master || !master.is_active) && (!user || !user.is_active)) {
           await ctx.reply(`Siz avval ro'yxatdan o'ting`, {
             parse_mode: "HTML",
-            ...Markup.keyboard([["Ro'yxatdan o'tish"]]).resize(),
+            ...Markup.keyboard([["Ro'yxatdan o'tish"]]).resize().oneTime()
           });
         }
         if (master && master!.last_state == "location") {
@@ -111,6 +111,14 @@ export class MasterService {
               inline_keyboard: buttons,
             },
           });
+          await ctx.reply("", {
+            ...Markup.removeKeyboard()
+          });
+        } else if (master && master!.edit_last_state == "edit_location") {
+          master!.location = `${ctx.message.location.latitude}, ${ctx.message.location.longitude}`;
+          master!.edit_last_state = null;
+          await master!.save();
+          await ctx.reply("Yangi joylashuv saqlandi");
         }
         if (user && user.is_active) {
           user!.location = `${ctx.message.location.latitude}, ${ctx.message.location.longitude}`;
@@ -145,7 +153,6 @@ export class MasterService {
     const master = await this.masterModel.findByPk(master_id);
     const time = ctx.callbackQuery!["data"].split("_")[1];
 
-    console.log(typeof time);
     if (master!.last_state == "start_time") {
       if (time >= 1 && time <= 9) {
         master!.start_time = `0${time}`;
@@ -172,6 +179,15 @@ export class MasterService {
           inline_keyboard: buttons,
         },
       });
+    } else if (master!.edit_last_state == "edit_start_time") {
+      if (time >= 1 && time <= 9) {
+        master!.start_time = `0${time}`;
+      } else {
+        master!.start_time = time;
+      }
+      master!.edit_last_state = null;
+      await master!.save();
+      await ctx.reply("Ish boshlanish vaqti o'zgartirildi");
     }
   }
 
@@ -196,6 +212,15 @@ export class MasterService {
           ...Markup.removeKeyboard(),
         }
       );
+    } else if (master!.edit_last_state == "edit_end_time") {
+      if (time >= 1 && time <= 9) {
+        master!.end_time = `0${time}`;
+      } else {
+        master!.end_time = time;
+      }
+      master!.edit_last_state = null;
+      await master!.save();
+      await ctx.reply("Ish tugash vaqti o'zgartirildi");
     }
   }
 
@@ -217,7 +242,6 @@ export class MasterService {
           ["✏️ Malumotlarni o'zgartirish"],
         ])
           .resize()
-          .oneTime(),
       });
     } else {
       await ctx.reply(
@@ -414,6 +438,36 @@ export class MasterService {
     }
   }
 
+  async masterTime(ctx: Context) {
+    const master_id = ctx.from?.id;
+    const master = await this.masterModel.findByPk(master_id);
+    if (master) {
+      const getNext7DaysButtons = () => {
+        const buttons: any[] = [];
+        const today = new Date();
+        const day = today.getDate();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        for (let i = 0; i < 7; i++) {
+          buttons.push([
+            {
+              text: `📅  ${day + i}.${month}`,
+              callback_data: `date_${master_id}_${day + i}.${month}`,
+            },
+          ]);
+        }
+
+        // buttons.push([{ text: "⬅️ ortga", callback_data: `back_${master_id}` }]);
+        return buttons;
+      };
+
+      await ctx.reply("Ish kunlaringiz", {
+        reply_markup: {
+          inline_keyboard: getNext7DaysButtons(),
+        },
+      });
+    }
+  }
+
   async onClickDay(ctx: Context) {
     const user_id = ctx.from?.id;
     const master_id = ctx.callbackQuery!["data"].split("_")[1];
@@ -458,6 +512,8 @@ export class MasterService {
       }
 
       if (row.length > 0) times.push(row);
+      times.push([{ text: "⬅️ ortga", callback_data: `back_${master_id}` }]);
+
       return times;
     };
 
@@ -470,7 +526,6 @@ export class MasterService {
       workEnd,
       clientInterval!
     );
-    console.log(availableTimes);
     await ctx.reply("Iltimos, qulay vaqtni tanlang:", {
       reply_markup: {
         inline_keyboard: availableTimes,
@@ -589,6 +644,133 @@ export class MasterService {
       }
     } else {
       await ctx.reply("Mijozlar mavjud emas");
+    }
+  }
+
+  async masterInfoEdit(ctx: Context) {
+    const master_id = ctx.from?.id;
+    const master = await this.masterModel.findOne({ where: { id: master_id } });
+    if (master) {
+      await ctx.reply("Qaysi ma'lumotingizni o'zgartirmoqchisiz", {
+        ...Markup.inlineKeyboard([
+          [{ text: "Ism", callback_data: "edit_master_name" }],
+          [{ text: "Ustaxona nomi", callback_data: "edit_workshop_name" }],
+          [{ text: "Manzil", callback_data: "edit_address" }],
+          [
+            {
+              text: "Manzil mo'ljali",
+              callback_data: "edit_address_target",
+            },
+          ],
+          [
+            {
+              text: "Ishni boshlash vaqti",
+              callback_data: "edit_start_time",
+            },
+          ],
+          [
+            {
+              text: "Ishni tugatish vaqti",
+              callback_data: "edit_end_time",
+            },
+          ],
+          [
+            {
+              text: "Ustaxona lokatsiyasi",
+              callback_data: "edit_location",
+            },
+          ],
+          [
+            {
+              text: "Mijoz uchun sarflanadigan vaqt",
+              callback_data: "edit_average_service_time",
+            },
+          ],
+          [{ text: "⬅️ Ortga", callback_data: "back_to_menu" }],
+        ]),
+      });
+    }
+  }
+
+  async onEditMaster(ctx: Context) {
+    const master_id = ctx.from?.id;
+    const master = await this.masterModel.findOne({ where: { id: master_id } });
+    const data = ctx.callbackQuery!["data"];
+    if (master) {
+      if (data === "edit_master_name") {
+        master.edit_last_state = "edit_master_name";
+        await master.save();
+        await ctx.reply("Ismingizni kiriting:");
+      } else if (data === "edit_workshop_name") {
+        master.edit_last_state = "edit_workshop_name";
+        await master.save();
+        await ctx.reply("Ustaxona yangi nomini kiriting:");
+      } else if (data === "edit_average_service_time") {
+        master.edit_last_state = "edit_average_service_time";
+        await master.save();
+        await ctx.reply(
+          "Har bir mijoz uchun sarflanadigan vaqtni kiriting (daqiqada)"
+        );
+      } else if (data === "edit_address") {
+        master.edit_last_state = "edit_address";
+        await master.save();
+        await ctx.reply("Yangi manzilni kiriting:");
+      } else if (data === "edit_address_target") {
+        master.edit_last_state = "edit_address_target";
+        await master.save();
+        await ctx.reply("Yangi mo'ljalni kiriting:");
+      } else if (data === "edit_start_time") {
+        master.edit_last_state = "edit_start_time";
+        await master.save();
+        let i: number = 9;
+        const buttons: any[] = [];
+
+        while (i <= 18) {
+          buttons.push([
+            {
+              text: `⏰ ${i}:00`,
+              callback_data: `start_${i}`,
+            },
+          ]);
+          i += 1;
+        }
+        await ctx.reply("Ish boshlanish vaqtini tanlang:", {
+          reply_markup: {
+            inline_keyboard: buttons,
+          },
+        });
+      } else if (data === "edit_end_time") {
+        master.edit_last_state = "edit_end_time";
+        await master.save();
+        let i: number = 9;
+        const buttons: any[] = [];
+
+        while (i <= 18) {
+          buttons.push([
+            {
+              text: `⏰ ${i}:00`,
+              callback_data: `end_${i}`,
+            },
+          ]);
+          i += 1;
+        }
+        await ctx.reply("Ish tugash vaqtini tanlang:", {
+          reply_markup: {
+            inline_keyboard: buttons,
+          },
+        });
+      } else if (data === "edit_location") {
+        master.edit_last_state = "edit_location";
+        await master.save();
+        await ctx.reply("Ustaxonani yangi joylashuvini yuboring", {
+          parse_mode: "HTML",
+          ...Markup.keyboard([
+            [Markup.button.locationRequest("Joylashuvni yuborish")],
+          ])
+            .resize()
+            .oneTime(),
+        });
+      }
     }
   }
 }

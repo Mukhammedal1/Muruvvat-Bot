@@ -75,6 +75,10 @@ export class Master extends Model<Master, IMasterCreationAttr> {
   })
   last_state: string | undefined;
   @Column({
+    type: DataType.STRING,
+  })
+  edit_last_state: string | null;
+  @Column({
     type: DataType.FLOAT,
     defaultValue: 0,
   })
