@@ -113,7 +113,7 @@ export class BotUpdate {
 
   @Hears("➕ Xizmat qo'shish")
   async addService(@Ctx() ctx: Context) {
-    await this.botService.adminServices(ctx);
+    await this.botService.addService(ctx);
   }
 
   @Hears("Tanlangan xizmatlar")
