@@ -313,13 +313,7 @@ export class BotService {
         const user_id = ctx.from?.id;
         const user = await this.userModel.findByPk(user_id);
         const master = await this.masterModel.findByPk(user_id);
-        if (!user && !master && !master!.is_active && !user!.is_active) {
-          await ctx.reply(`Siz avval ro'yxatdan o'ting`, {
-            parse_mode: "HTML",
-            ...Markup.keyboard([["Ro'yxatdan o'tish"]]).resize(),
-          });
-        }
-        if (master && master?.is_active) {
+        if (master && master!.is_active) {
           if (master.last_state !== "finish") {
             if (master.last_state == "workshop_name") {
               master.workshop_name = ctx.message.text;
@@ -345,7 +339,9 @@ export class BotService {
                 parse_mode: "HTML",
                 ...Markup.keyboard([
                   [Markup.button.locationRequest("Joylashuvni yuborish")],
-                ]).resize().oneTime()
+                ])
+                  .resize()
+                  .oneTime(),
               });
             } else if (master.last_state == "average_service_time") {
               master.average_service_time = Number(ctx.message.text);
@@ -391,9 +387,7 @@ export class BotService {
               );
             }
           }
-        }
-
-        if (user && user.is_active) {
+        } else if (user && user.is_active) {
           const service_id = ctx.callbackQuery!["data"].split("_")[1];
 
           const masters = await this.masterModel.findAll({
@@ -412,8 +406,7 @@ export class BotService {
               await ctx.replyWithHTML(message);
             }
           }
-        }
-        if (user_id == process.env.ADMIN) {
+        } else if (user_id == process.env.ADMIN) {
           const newService = await this.serviceModel.create({
             name: ctx.message.text,
           });
@@ -427,6 +420,11 @@ export class BotService {
                 .resize(),
             });
           }
+        } else {
+          await ctx.reply(`Siz avval ro'yxatdan o'ting`, {
+            parse_mode: "HTML",
+            ...Markup.keyboard([["Ro'yxatdan o'tish"]]).resize(),
+          });
         }
       }
     } catch (error) {
