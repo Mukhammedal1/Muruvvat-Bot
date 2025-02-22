@@ -1,14 +1,14 @@
 import { Column, DataType, Model, Table } from "sequelize-typescript";
 
-interface IUserCreationAttr {
+interface ISahiyCreationAttr {
   id: number | undefined;
   username: string | undefined;
-  first_name: string | undefined;
   lang: string | undefined;
+  last_state:string | undefined
 }
 
-@Table({ tableName: "users" })
-export class User extends Model<User, IUserCreationAttr> {
+@Table({ tableName: "sahiy" })
+export class Sahiy extends Model<Sahiy, ISahiyCreationAttr> {
   @Column({
     type: DataType.BIGINT,
     autoIncrement: true,
@@ -22,7 +22,7 @@ export class User extends Model<User, IUserCreationAttr> {
   @Column({
     type: DataType.STRING,
   })
-  first_name: string | undefined;
+  name: string | undefined;
   @Column({
     type: DataType.STRING,
   })
@@ -41,8 +41,11 @@ export class User extends Model<User, IUserCreationAttr> {
   })
   location: string;
   @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
+    type: DataType.STRING,
   })
-  marked: number|0
+  last_state: string;
+  @Column({
+    type: DataType.STRING,
+  })
+  edit_last_state: string;
 }
