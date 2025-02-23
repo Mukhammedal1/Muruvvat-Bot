@@ -9,7 +9,7 @@ import { callback } from "telegraf/typings/button";
 import { Murojat } from "./models/murojat.model";
 import * as fs from "fs";
 import * as path from "path";
-import * as axios from "axios";
+import axios from "axios";
 
 @Injectable()
 export class SabrliService {
