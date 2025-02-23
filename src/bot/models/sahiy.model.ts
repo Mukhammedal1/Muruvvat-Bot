@@ -48,4 +48,5 @@ export class Sahiy extends Model<Sahiy, ISahiyCreationAttr> {
     type: DataType.STRING,
   })
   edit_last_state: string;
+  
 }

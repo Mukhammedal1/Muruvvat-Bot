@@ -55,10 +55,46 @@ export class BotUpdate {
     await this.sabrliService.registerSabrli(ctx);
   }
 
+  @Hears("Muruvvat qilish")
+  async onclickMuruvvatQilish(@Ctx() ctx: Context) {
+    await this.sahiyService.onclickMuruvvatQilish(ctx);
+  }
+
+  @Hears("Sabrlilarni ko'rish")
+  async onclickShowSabrli(@Ctx() ctx: Context) {
+    await this.sahiyService.onclickShowSabrli(ctx);
+  }
+
+  @Hears("Barcha sabrlilar")
+  async onclickSeeSabrli(@Ctx() ctx: Context) {
+    await this.sahiyService.onclickSeeSabrli(ctx);
+  }
+
+  @Hears("Barcha sabrlilar")
+  async onclickAllSabrli(@Ctx() ctx: Context) {
+    await this.sahiyService.onclickAllSabrli(ctx);
+  }
+
+  @Hears("Murojat yo'llash")
+  async onclickMurojat(@Ctx() ctx: Context) {
+    await this.sabrliService.onclickMurojat(ctx);
+  }
+
   @Action("check_sub")
-  async checkSubscribeChanel(@Ctx() ctx:Context){
+  async checkSubscribeChanel(@Ctx() ctx: Context) {
     await this.botService.checkSubscribeChanel(ctx);
   }
+
+  @Action(/^(male|female)_\d+$/)
+  async onActionGender(@Ctx() ctx: Context) {
+    await this.sabrliService.onActionGender(ctx);
+  }
+
+  @On("photo")
+  async onPhoto(@Ctx() ctx: Context) {
+    await this.sabrliService.onPhoto(ctx);
+  }
+
   @On("text")
   async onText(@Ctx() ctx: Context) {
     await this.botService.onText(ctx);

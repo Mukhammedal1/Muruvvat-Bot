@@ -7,9 +7,10 @@ import { Sabrli } from "./models/sabrli.model";
 import { Muruvvat } from "./models/muruvvat.model";
 import { SabrliService } from "./sabrli.service";
 import { SahiyService } from "./sahiy.service";
+import { Murojat } from "./models/murojat.model";
 
 @Module({
-  imports: [SequelizeModule.forFeature([Sahiy, Sabrli, Muruvvat])],
+  imports: [SequelizeModule.forFeature([Sahiy, Sabrli, Muruvvat, Murojat])],
   providers: [SabrliService, SahiyService, BotUpdate, BotService],
   exports: [BotService],
 })

@@ -4,12 +4,16 @@ import { InjectBot } from "nestjs-telegraf";
 import { Context, Markup, Telegraf } from "telegraf";
 import { Sahiy } from "./models/sahiy.model";
 import { Sabrli } from "./models/sabrli.model";
+import { Muruvvat } from "./models/muruvvat.model";
+import { Murojat } from "./models/murojat.model";
 
 @Injectable()
 export class BotService {
   constructor(
     @InjectModel(Sabrli) private readonly sabrliModel: typeof Sabrli,
     @InjectModel(Sahiy) private readonly sahiyModel: typeof Sahiy,
+    @InjectModel(Muruvvat) private readonly muruvvatModel: typeof Muruvvat,
+    @InjectModel(Murojat) private readonly murojatModel: typeof Murojat,
     @InjectBot(process.env.BOT_NAME) private readonly bot: Telegraf<Context>
   ) {}
 
@@ -197,6 +201,33 @@ export class BotService {
                 }
               );
             }
+          } else if (sahiy.last_state == "finish") {
+            const muruvvat1 = await this.muruvvatModel.findOne({
+              where: { sahiy_id: user_id, last_state: "kimga" },
+            });
+            if (muruvvat1) {
+              muruvvat1.who_for = ctx.message.text;
+              muruvvat1.last_state = "nima";
+              await muruvvat1.save();
+              await ctx.reply("Nima:", {
+                ...Markup.removeKeyboard(),
+              });
+              return
+            }
+            const muruvvat2 = await this.muruvvatModel.findOne({
+              where: { sahiy_id: user_id, last_state: "nima" },
+            });
+            if (muruvvat2) {
+              muruvvat2.item = ctx.message.text;
+              muruvvat2.last_state = "finish";
+              await muruvvat2.save();
+              await ctx.reply("Kiritgan ma'lumotlaringiz adminga yuborildi", {
+                ...Markup.removeKeyboard(),
+              });
+              const message = `📢 Sahiydan muruvvat uchun malumotlar yuborildi\n👤 Ism: ${sahiy.name}\n📞 Telefon raqam: ${sahiy.phone_number}\n👉👤 Kimga: ${muruvvat2.who_for}\n🎁 Nima: ${muruvvat2.item}`;
+              const admin = Number(process.env.ADMIN);
+              await ctx.telegram.sendMessage(admin, message);
+            }
           }
         } else if (sabrli) {
           if (sabrli.last_state !== "finish") {
@@ -237,6 +268,61 @@ export class BotService {
                   .resize()
                   .oneTime(),
               });
+            }
+          } else if (sabrli.last_state == "finish") {
+            const murojat = await this.murojatModel.findOne({
+              where: { sabrli_id: user_id, last_state: "item" },
+            });
+            if (murojat) {
+              murojat.item = ctx.message.text;
+              murojat.last_state = "age";
+              await murojat.save();
+              await ctx.reply("Yoshingizni kiriting masalan(25)");
+            }
+            const murojat2 = await this.murojatModel.findOne({
+              where: { sabrli_id: user_id, last_state: "age" },
+            });
+            if (murojat2) {
+              murojat2.age = Number(ctx.message.text);
+              murojat2.last_state = "gender";
+              await murojat2.save();
+              await ctx.reply(`Jinsingizni tasdiqlang`, {
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      {
+                        text: "👨 Erkak ",
+                        callback_data: `male_${murojat2.sabrli_id}`,
+                      },
+                      {
+                        text: "👩 Ayol",
+                        callback_data: `female_${murojat2.sabrli_id}`,
+                      },
+                    ],
+                  ],
+                },
+              });
+            }
+            const murojat3 = await this.murojatModel.findOne({
+              where: { sabrli_id: user_id, last_state: "height" },
+            });
+            if (murojat3) {
+              murojat3.height = Number(ctx.message.text);
+              murojat3.last_state = "size";
+              await murojat3.save();
+              await ctx.reply(
+                "O'lchamingizni kiriting masalan(M,L,XL yoki oyoq kiyim: 41,39)"
+              );
+              return
+            }
+            const murojat4 = await this.murojatModel.findOne({
+              where: { sabrli_id: user_id, last_state: "size" },
+            });
+            if (murojat4) {
+              murojat4.size = ctx.message.text;
+              murojat4.last_state = "finish";
+              await murojat4.save();
+              await ctx.reply("Malumotlaringiz saqlandi");
             }
           }
         } else {
