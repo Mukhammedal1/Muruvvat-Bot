@@ -129,7 +129,7 @@ export class SahiyService {
         });
         if (sabrli) {
           await ctx.replyWithPhoto(`${murojat.image}`, {
-            caption: `Jinsi: ${murojat.gender}\nYoshi: ${murojat.age} yosh\nO'lchami: ${murojat.size}\nNima kerak: ${murojat.item}`,
+            caption: `Ism: ${sabrli.name}\nJinsi: ${murojat.gender}\nYoshi: ${murojat.age} yosh\nO'lchami: ${murojat.size}\nNima kerak: ${murojat.item}`,
             parse_mode: "Markdown",
             reply_markup: {
               inline_keyboard: [
@@ -144,6 +144,6 @@ export class SahiyService {
           });
         }
       }
-    } 
+    }
   }
 }
